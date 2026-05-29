@@ -3,3 +3,4 @@ statsbombpy
 pandas
 matplotlib
 mplsoccer
+deep-translator
