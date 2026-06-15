@@ -4,44 +4,30 @@ import json
 from statsbombpy import sb
 import matplotlib.pyplot as plt
 from mplsoccer import Pitch
-from deep_translator import GoogleTranslator  # 💡 [추가] 구글 자동 번역기
+from deep_translator import GoogleTranslator
 
-# ==========================================
-# 1. 페이지 설정
-# ==========================================
-st.set_page_config(page_title="찬빈's 패스맵 대시보드", page_icon="⚽", layout="wide")
-
-st.title("⚽ 인터랙티브 축구 패스 네트워크 대시보드")
-st.markdown("**한국디지털미디어고등학교 해킹방어과 3510 류찬빈**")
-st.divider()
-
-# ==========================================
-# 💡 [추가] 자동 번역 최적화 함수 (한 번 번역한 건 메모리에 저장!)
-# ==========================================
 @st.cache_data
 def translate_names(name_list):
     translator = GoogleTranslator(source='en', target='ko')
     translated_dict = {}
     for name in name_list:
         try:
-            # 영어 풀네임 번역 시도
             translated_dict[name] = translator.translate(name)
         except:
-            # 에러 시 원래 이름 사용
             translated_dict[name] = name 
     return translated_dict
 
-# ==========================================
-# 2. 세션 상태 초기화
-# ==========================================
+st.set_page_config(page_title="찬빈's 패스맵 대시보드", page_icon="⚽", layout="wide")
+
+st.title("⚽ 인터랙티브 축구 패스 네트워크 대시보드")
+st.markdown("**한국디지털미디어고등학교 해킹방어과 3510 류찬빈**")
+st.divider()
+
 if 'events_df' not in st.session_state:
     st.session_state.events_df = None
 if 'match_info' not in st.session_state:
     st.session_state.match_info = None
 
-# ==========================================
-# 3. 왼쪽 사이드바
-# ==========================================
 with st.sidebar:
     st.header("📂 데이터 불러오기")
     data_source = st.radio("데이터 수집 방식 선택:", ["오픈 API (무료 데이터)", "내 JSON 파일 업로드"])
@@ -93,9 +79,6 @@ with st.sidebar:
                 }
             st.success("파일 업로드 완료!")
 
-# ==========================================
-# 4. 메인 화면
-# ==========================================
 if st.session_state.events_df is not None:
     df = st.session_state.events_df
     team_list = df['team'].dropna().unique().tolist()
@@ -120,7 +103,7 @@ if st.session_state.events_df is not None:
     
     lineup_info = []
     jersey_numbers = {}
-    player_names_en = [] # 번역할 영어 이름들을 모아둘 리스트
+    player_names_en = []
 
     if not starting_xi.empty:
         tactics = starting_xi.iloc[0].get('tactics', {})
@@ -133,7 +116,6 @@ if st.session_state.events_df is not None:
                 jersey_numbers[p_name] = p_num
                 player_names_en.append(p_name)
 
-    # 💡 여기서 한 번에 자동 번역 실행!
     ko_name_dict = {}
     if player_names_en:
         ko_name_dict = translate_names(player_names_en)
@@ -187,7 +169,6 @@ if st.session_state.events_df is not None:
                 st.write(f"📋 **{selected_team} 선발 라인업**")
                 if lineup_info:
                     lineup_df = pd.DataFrame(lineup_info).sort_values(by="priority")
-                    # 💡 표에 번역된 한글 이름 적용
                     lineup_df['한글 이름'] = lineup_df['이름'].map(ko_name_dict).fillna(lineup_df['이름'])
                     st.table(lineup_df[["등번호", "포지션", "한글 이름"]])
 
@@ -226,7 +207,6 @@ if st.session_state.events_df is not None:
                 """, unsafe_allow_html=True)
 
                 col_m1, col_m2, col_m3 = st.columns(3)
-                # 💡 요약 보드에도 번역된 한글 이름 적용
                 with col_m1:
                     st.metric(label="👑 패스 마스터 (최다 성공)", value=ko_name_dict.get(top_passer['player'], top_passer['player']), delta=f"{int(top_passer['success'])}회 성공")
                 with col_m2:
